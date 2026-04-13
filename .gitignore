@@ -1,0 +1,67 @@
+# =========================
+# Python & Django (Бекенд)
+# =========================
+# База даних SQLite (ніколи не пушити локальну БД)
+db.sqlite3
+db.sqlite3-journal
+
+# Віртуальне середовище
+venv/
+env/
+.venv/
+.env/
+
+# Кеш Python та скомпільовані файли
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Локальні медіа-файли та статика (завантажені користувачами)
+media/
+staticfiles/
+
+# =========================
+# Node.js & React (Фронтенд)
+# =========================
+# Залежності NPM (дуже важка папка)
+node_modules/
+jspm_packages/
+
+# Зібраний продакшн-код (генерується автоматично)
+build/
+dist/
+out/
+
+# Кеш інструментів фронтенду
+.eslintcache
+.npm/
+
+# =========================
+# Секретні файли (Критично важливо!)
+# =========================
+# Файли зі змінними середовища (паролі, JWT секрети, API ключі)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# =========================
+# Системні файли OS та IDE
+# =========================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Налаштування редакторів коду
+.idea/
+.vscode/
+*.swp
+*.swo
