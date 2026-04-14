@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head><title>Вхід у систему</title></head>
+<body>
+    <h1>Вхід в Освітній Центр</h1>
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <label>Телефон:</label>
+        <input type="text" name="phone" required>
+        <br><br>
+        <label>Пароль:</label>
+        <input type="password" name="password" required>
+        <br><br>
+        <button type="submit">Увійти</button>
+    </form>
+</body>
+</html>

@@ -28,7 +28,7 @@ class CustomUser(AbstractUser):
         default='teacher',
     )
 
-    #branches = models.ManyToManyField('core.Branch', related_name='users', blank=True)
+    branches = models.ManyToManyField('core.Branch', related_name='users', blank=True)
     
     objects = CustomUserManager()
     

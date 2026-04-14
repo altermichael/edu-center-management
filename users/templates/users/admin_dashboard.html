@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head><title>Панель Адміністратора</title></head>
+<body>
+    <h1>Привіт, Адміне {{ user.first_name }}!</h1>
+    <p>Твоя роль: {{ user.role }}</p>
+    
+    <hr>
+    <h3>Статистика Навчального Центру:</h3>
+    <ul>
+        <li>Всього студентів у базі: {{ student_count }}</li>
+    </ul>
+
+    <h3>Список філій:</h3>
+    <ul>
+        {% for branch in branches %}
+            <li>{{ branch.name }} ({{ branch.city }})</li>
+        {% empty %}
+            <li>Філій поки немає. Додайте їх через адмінку.</li>
+        {% endfor %}
+    </ul>
+
+    <h3>Список викладачів:</h3>
+    <ul>
+        {% for teacher in teachers %}
+            <li>{{ teacher.first_name }} {{ teacher.last_name }} ({{ teacher.phone }})</li>
+        {% empty %}
+            <li>Викладачів поки немає.</li>
+        {% endfor %}
+    </ul>
+    <hr>
+
+    <a href="{% url 'logout' %}">Вийти з системи</a>
+</body>
+</html>
