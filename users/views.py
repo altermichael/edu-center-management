@@ -2,7 +2,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
-from core.models import Branch, Student, Group
+from core.models import Branch
+from students.models import Student, Group
 
 def login_view(request):
     if request.method == 'POST':
