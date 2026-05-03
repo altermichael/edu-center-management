@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'students',
     'subscriptions',
     'schedule',
+    'rest_framework',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -124,3 +126,14 @@ STATIC_URL = 'static/'
 
 AUTH_USER_MODEL = 'users.CustomUser'
 LOGIN_URL = '/login/'
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Educational Center API',
+    'DESCRIPTION': 'API documentation for Educational Center Management System',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
