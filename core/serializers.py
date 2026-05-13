@@ -4,9 +4,9 @@ from .models import Branch, Subject
 class BranchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
-        fields = ['name', 'address', 'city', 'status']
+        fields = ['id', 'name', 'address', 'city', 'status']
 
 class SubjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subject
-        fields = ['name', 'branch', 'status'] 
+        fields = ['id', 'name', 'branch', 'status'] 
