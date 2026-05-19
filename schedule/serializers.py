@@ -19,6 +19,11 @@ class LessonSerializer(serializers.ModelSerializer):
         start_time = data.get('start_time')
         end_time = data.get('end_time')
 
+        if start_time and end_time and start_time >= end_time:
+            raise serializers.ValidationError({
+                "end_time": "Час закінчення уроку має бути пізніше часу початку."
+            })
+
         if student and group:
             raise serializers.ValidationError("Урок має бути АБО індивідуальним, АБО груповим. Не вказуйте обидва поля.")
         if not student and not group:
@@ -73,6 +78,18 @@ class AttendanceSerializer(serializers.ModelSerializer):
         if lesson.status == 'CANCELLED':
             raise serializers.ValidationError({"lesson": "Не можна відмічати відвідуваність на скасованому уроці."})
         return data
+    
+    def create(self, validated_data):
+        
+        attendance = super().create(validated_data)
+        
+        lesson = attendance.lesson
+        
+        if lesson.status == 'SCHEDULED':
+            lesson.status = 'COMPLETED'
+            lesson.save()
+            
+        return attendance
 
 class LessonTemplateSerializer(serializers.ModelSerializer):
     class Meta:
