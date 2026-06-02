@@ -16,6 +16,12 @@ class StudentSerializer(serializers.ModelSerializer):
         ]
 
 class GroupSerializer(serializers.ModelSerializer):
+    students = serializers.PrimaryKeyRelatedField(
+        many=True, 
+        queryset=Student.objects.all(), 
+        required=False
+    )
+    
     class Meta:
         model = Group
         fields = ['id', 'name', 'branch', 'status', 'students']
