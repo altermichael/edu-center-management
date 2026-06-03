@@ -1,15 +1,15 @@
-from rest_framework import viewsets
+from core.views import NoDeleteViewSet
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from .models import Parent, Student, Group
 from .serializers import ParentSerializer, StudentSerializer, GroupSerializer
 
-class ParentViewSet(viewsets.ModelViewSet):
+class ParentViewSet(NoDeleteViewSet):
     queryset = Parent.objects.all()
     serializer_class = ParentSerializer
     permission_classes = [IsAuthenticated]
 
-class StudentViewSet(viewsets.ModelViewSet):
+class StudentViewSet(NoDeleteViewSet):
     serializer_class = StudentSerializer
     permission_classes = [IsAuthenticated]
 
@@ -37,7 +37,7 @@ class StudentViewSet(viewsets.ModelViewSet):
 
         return queryset
 
-class GroupViewSet(viewsets.ModelViewSet):
+class GroupViewSet(NoDeleteViewSet):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
     permission_classes = [IsAuthenticated]

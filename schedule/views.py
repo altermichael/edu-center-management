@@ -1,9 +1,10 @@
-from rest_framework import viewsets
+from core.views import NoDeleteViewSet
+
 from rest_framework.permissions import IsAuthenticated
 from .models import LessonTemplate, Lesson, Attendance
 from .serializers import LessonTemplateSerializer, LessonSerializer, AttendanceSerializer
 
-class LessonViewSet(viewsets.ModelViewSet):
+class LessonViewSet(NoDeleteViewSet):
     serializer_class = LessonSerializer
     permission_classes = [IsAuthenticated]
 
@@ -29,7 +30,7 @@ class LessonViewSet(viewsets.ModelViewSet):
 
         return queryset
 
-class AttendanceViewSet(viewsets.ModelViewSet):
+class AttendanceViewSet(NoDeleteViewSet):
     serializer_class = AttendanceSerializer
     permission_classes = [IsAuthenticated]
 
@@ -49,7 +50,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 
         return queryset
 
-class LessonTemplateViewSet(viewsets.ModelViewSet):
+class LessonTemplateViewSet(NoDeleteViewSet):
     queryset = LessonTemplate.objects.all()
     serializer_class = LessonTemplateSerializer
     permission_classes = [IsAuthenticated]
