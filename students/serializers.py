@@ -1,5 +1,6 @@
+from django.utils import timezone
 from rest_framework import serializers
-from .models import Parent, Student, Group
+from .models import Parent, Student, Group, StudentGroup
 
 class ParentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -25,3 +26,42 @@ class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
         fields = ['id', 'name', 'branch', 'status', 'students']
+
+    def create(self, validated_data):
+        # діст студентів з даних
+        students_data = validated_data.pop('students', [])
+        
+        group = super().create(validated_data)
+        
+        # створюємо зв'язки
+        for student in students_data:
+            StudentGroup.objects.create(group=group, student=student)
+            
+        return group
+
+    def update(self, instance, validated_data):
+        if 'students' in validated_data:
+            new_students = validated_data.pop('students')
+            old_students = instance.students.all()
+            
+            # Шукаємо тих кого видалили
+            for student in old_students:
+                if student not in new_students:
+                    student_group = StudentGroup.objects.filter(
+                        group=instance, 
+                        student=student, 
+                        leave_date__isnull=True
+                    ).first()
+                    
+                    # ставимо дату виходу замість видалення
+                    if student_group:
+                        student_group.leave_date = timezone.now().date()
+                        student_group.save()
+                        
+            # Шукаємо тих кого додали
+            for student in new_students:
+                if student not in old_students:
+                    StudentGroup.objects.create(group=instance, student=student)
+                    
+        # Оновлюємо поля
+        return super().update(instance, validated_data)
