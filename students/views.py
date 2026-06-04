@@ -38,6 +38,24 @@ class StudentViewSet(NoDeleteViewSet):
         return queryset
 
 class GroupViewSet(NoDeleteViewSet):
-    queryset = Group.objects.all()
     serializer_class = GroupSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+
+        queryset = Group.objects.all()
+        
+        branch_id = self.request.query_params.get('branch')
+        status = self.request.query_params.get('status')
+        search_query = self.request.query_params.get('search')
+
+        if branch_id:
+            queryset = queryset.filter(branch_id=branch_id)
+            
+        if status:
+            queryset = queryset.filter(status=status)
+            
+        if search_query:
+            queryset = queryset.filter(name__icontains=search_query)
+
+        return queryset
