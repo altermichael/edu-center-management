@@ -3,19 +3,20 @@ from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from .models import Parent, Student, Group
 from .serializers import ParentSerializer, StudentSerializer, GroupSerializer
+from core.permissions import IsAdminOrReadOnly
 
 class ParentViewSet(NoDeleteViewSet):
+    permission_classes = [IsAdminOrReadOnly]
     queryset = Parent.objects.all()
     serializer_class = ParentSerializer
-    permission_classes = [IsAuthenticated]
 
 class StudentViewSet(NoDeleteViewSet):
+    permission_classes = [IsAdminOrReadOnly]
     serializer_class = StudentSerializer
-    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
 
-        queryset = Student.objects.all()
+        queryset = Student.objects.select_related('branch', 'parent').all()
         
         branch_id = self.request.query_params.get('branch')
         status = self.request.query_params.get('status')
@@ -38,12 +39,12 @@ class StudentViewSet(NoDeleteViewSet):
         return queryset
 
 class GroupViewSet(NoDeleteViewSet):
+    permission_classes = [IsAdminOrReadOnly]
     serializer_class = GroupSerializer
-    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
 
-        queryset = Group.objects.all()
+        queryset = Group.objects.select_related('branch').prefetch_related('students').all()
         
         branch_id = self.request.query_params.get('branch')
         status = self.request.query_params.get('status')

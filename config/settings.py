@@ -1,6 +1,9 @@
 import sys
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -34,9 +37,6 @@ INSTALLED_APPS = [
     'schedule',
 ]
 
-if not TESTING:
-    INSTALLED_APPS.append('silk')
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -48,7 +48,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-if not TESTING:
+
+if DEBUG and not TESTING:
+    INSTALLED_APPS.append('silk')
     MIDDLEWARE.insert(0, 'silk.middleware.SilkyMiddleware')
 
 STORAGES = {
@@ -121,14 +123,18 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
 }
 
 # Silk — see /silk/ in the browser
-SILKY_PYTHON_PROFILER = False
-SILKY_AUTHENTICATION = False
-SILKY_AUTHORISATION = False
+if DEBUG and not TESTING:
+    SILKY_PYTHON_PROFILER = False
+    SILKY_AUTHENTICATION = False
+    SILKY_AUTHORISATION = False
 
 # SECURE_SSL_REDIRECT = True
 SECURE_REDIRECT_EXEMPT = [r'.*']

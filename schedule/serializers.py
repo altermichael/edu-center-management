@@ -1,14 +1,27 @@
 from rest_framework import serializers
 from django.db.models import Q
 from .models import LessonTemplate, Lesson, Attendance
+from datetime import timedelta
 
 class LessonSerializer(serializers.ModelSerializer):
+
+    teacher_name = serializers.CharField(source='teacher.get_full_name', read_only=True)
+    subject_name = serializers.CharField(source='subject.name', read_only=True)
+    group_name = serializers.CharField(source='group.name', read_only=True)
+    student_name = serializers.SerializerMethodField()
+
     class Meta:
         model = Lesson
         fields = [
-            'id', 'teacher', 'subject', 'student', 'group', 
+            'id', 'teacher', 'teacher_name', 'subject', 'subject_name', 
+            'student', 'student_name', 'group', 'group_name', 
             'template', 'date', 'start_time', 'end_time', 'status'
         ]
+
+    def get_student_name(self, obj):
+        if obj.student:
+            return f"{obj.student.first_name} {obj.student.last_name}"
+        return None
 
     def validate(self, data):
        
@@ -77,8 +90,13 @@ class AttendanceSerializer(serializers.ModelSerializer):
 
         if lesson.status == 'CANCELLED':
             raise serializers.ValidationError({"lesson": "Не можна відмічати відвідуваність на скасованому уроці."})
-        return data
+
+        user = self.context['request'].user
+        if getattr(user, 'role', '') == 'teacher' and lesson.teacher != user:
+            raise serializers.ValidationError({"lesson": "Ви можете відмічати відвідуваність тільки на своїх уроках."})
     
+        return data
+
     def create(self, validated_data):
         
         attendance = super().create(validated_data)
@@ -123,3 +141,50 @@ class LessonTemplateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"end_time": "Час закінчення уроку має бути пізніше часу початку."})
 
         return data
+
+    def create(self, validated_data):
+        template = super().create(validated_data)
+        
+        try:
+            valid_days = [int(d.strip()) for d in template.days_of_week.split(',')]
+        except ValueError:
+            valid_days = []
+            
+        current_date = template.start_date
+        lessons_to_create = []
+        
+        while current_date <= template.end_date:
+            if current_date.weekday() in valid_days:
+                overlapping = Lesson.objects.filter(
+                    date=current_date,
+                    start_time__lt=template.end_time,
+                    end_time__gt=template.start_time
+                ).exclude(status='CANCELLED')
+                
+                conflict = overlapping.filter(teacher=template.teacher).exists()
+                
+                if not conflict and template.student:
+                    conflict = overlapping.filter(Q(student=template.student) | Q(group__students=template.student)).exists()
+                    
+                if not conflict and template.group:
+                    group_students = template.group.students.all()
+                    conflict = overlapping.filter(Q(student__in=group_students) | Q(group__students__in=group_students)).exists()
+                    
+                if not conflict:
+                    lessons_to_create.append(Lesson(
+                        teacher=template.teacher,
+                        subject=template.subject,
+                        student=template.student,
+                        group=template.group,
+                        template=template,
+                        date=current_date,
+                        start_time=template.start_time,
+                        end_time=template.end_time,
+                        status='SCHEDULED'
+                    ))
+            current_date += timedelta(days=1)
+            
+        if lessons_to_create:
+            Lesson.objects.bulk_create(lessons_to_create)
+            
+        return template

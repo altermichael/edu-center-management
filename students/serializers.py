@@ -8,15 +8,17 @@ class ParentSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'phone', 'email', 'relationship']
 
 class StudentSerializer(serializers.ModelSerializer):
+
+    branch_name = serializers.CharField(source='branch.name', read_only=True)
+
     class Meta:
         model = Student
-        fields = [
-            'id', 'first_name', 'last_name', 'date_of_birth', 
-            'phone', 'email', 'address', 'status', 
-            'branch', 'parent'
-        ]
+        fields = ['id', 'first_name', 'last_name', 'date_of_birth', 'phone', 'email', 'address', 'status', 'branch', 'branch_name', 'parent']
 
 class GroupSerializer(serializers.ModelSerializer):
+
+    branch_name = serializers.CharField(source='branch.name', read_only=True)
+
     students = serializers.PrimaryKeyRelatedField(
         many=True, 
         queryset=Student.objects.all(), 
@@ -25,7 +27,7 @@ class GroupSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Group
-        fields = ['id', 'name', 'branch', 'status', 'students']
+        fields = ['id', 'name', 'branch', 'branch_name', 'status', 'students']
 
     def create(self, validated_data):
         # діст студентів з даних

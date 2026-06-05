@@ -10,21 +10,31 @@ from .serializers import CustomTokenObtainPairSerializer
 from rest_framework import viewsets
 from django.contrib.auth import get_user_model
 from .serializers import UserSerializer
+from django.db.models import Q
+from core.permissions import IsAdminOrReadOnly
 
 class CustomTokenObtainPairView(TokenObtainPairView):
+    permission_classes = [IsAdminOrReadOnly]
     serializer_class = CustomTokenObtainPairSerializer
 
 User = get_user_model()
 
 class UserViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAdminOrReadOnly]
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
     def get_queryset(self):
+        queryset = User.objects.all()
         role = self.request.query_params.get('role', None)
+        search = self.request.query_params.get('search', None)
+        
         if role:
-            return self.queryset.filter(role=role)
-        return self.queryset
+            queryset = queryset.filter(role=role)
+        if search:
+            queryset = queryset.filter(Q(first_name__icontains=search) | Q(last_name__icontains=search))
+            
+        return queryset
 
 # def login_view(request):
 #     if request.method == 'POST':

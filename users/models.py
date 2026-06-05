@@ -26,6 +26,7 @@ class CustomUser(AbstractUser):
         max_length=10,
         choices=[('admin', 'Administrator'), ('teacher', 'Teacher')],
         default='teacher',
+        db_index=True
     )
 
     branches = models.ManyToManyField('core.Branch', related_name='users', blank=True)

@@ -4,8 +4,8 @@ from .views import BranchViewSet, SubjectViewSet
 
 router = DefaultRouter()
 
-router.register(r'branches', BranchViewSet)
-router.register(r'subjects', SubjectViewSet)
+router.register(r'branches', BranchViewSet, basename='branches')
+router.register(r'subjects', SubjectViewSet, basename='subject')
 
 urlpatterns = [
     path('', include(router.urls)),
