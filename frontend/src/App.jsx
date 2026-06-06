@@ -5,6 +5,8 @@ import Branches from "./pages/Branches";
 import Teachers from "./pages/Teachers";
 import Students from "./pages/Students";
 import Groups from "./pages/Groups";
+import Subjects from "./pages/Subjects";
+import SubscriptionPlans from "./pages/SubscriptionPlans";
 import Layout from "./components/Layout"; Groups
 
 function App() {
@@ -20,6 +22,8 @@ function App() {
           <Route path="/teachers" element={<Teachers />} />
           <Route path="/students" element={<Students />} />
           <Route path="/groups" element={<Groups />} />
+          <Route path="/subjects" element={<Subjects />} />
+          <Route path="/subscriptions" element={<SubscriptionPlans />} />
         </Route>
       </Routes>
     </BrowserRouter>

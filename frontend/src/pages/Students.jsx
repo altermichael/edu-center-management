@@ -201,19 +201,19 @@ export default function Students() {
               <label className="block text-sm text-brand-dark font-semibold mb-2">Ім'я *</label>
               <input type="text" required value={firstName} 
               onChange={e => setFirstName(e.target.value)} 
-              className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-light outline-none" 
+              className="base-input" 
               placeholder="Нап.: Іван" />
             </div>
             <div>
               <label className="block text-sm text-brand-dark font-semibold mb-2">Прізвище *</label>
               <input type="text" required value={lastName} 
               onChange={e => setLastName(e.target.value)} 
-              className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-light outline-none" 
+              className="base-input" 
               placeholder="Нап.: Шевченко" />
             </div>
             <div>
               <label className="block text-sm text-brand-dark font-semibold mb-2">Філія *</label>
-              <select required value={branchId} onChange={e => setBranchId(e.target.value)} className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-light outline-none">
+              <select required value={branchId} onChange={e => setBranchId(e.target.value)} className="base-input">
                 <option value="">Оберіть філію</option>
                 {branches.map(b => (
                   <option key={b.id} value={b.id}>{b.name}</option>
@@ -222,14 +222,14 @@ export default function Students() {
             </div>
             <div>
               <label className="block text-sm text-brand-dark font-semibold mb-2">Дата народження</label>
-              <input type="date" value={dateOfBirth} onChange={e => setDateOfBirth(e.target.value)} className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-light outline-none" />
+              <input type="date" value={dateOfBirth} onChange={e => setDateOfBirth(e.target.value)} className="base-input" />
             </div>
             <div>
               <label className="block text-sm text-brand-dark font-semibold mb-2">Телефон</label>
               <input type="text" 
                 value={phone} 
                 onChange={e => setPhone(e.target.value)} 
-                className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-light outline-none" 
+                className="base-input" 
                 placeholder="+380ххххххххх" />
             </div>
             <div>
@@ -237,7 +237,7 @@ export default function Students() {
               <input type="text" 
               value={address} 
               onChange={e => setAddress(e.target.value)} 
-              className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-light outline-none" 
+              className="base-input" 
               placeholder="Нап.: вул. Хрещатик, буд. 1, кв. 15, м. Київ"/>
             </div>
           </div>
@@ -267,7 +267,7 @@ export default function Students() {
 
           <div className="flex justify-end gap-3">
             {editingId && <button type="button" onClick={handleCancelEdit} className="bg-gray-100 text-gray-600 font-bold py-3.5 px-6 rounded-2xl hover:bg-gray-200">Скасувати</button>}
-            <button type="submit" className="bg-brand-light text-white font-bold py-3.5 px-8 rounded-2xl hover:bg-brand-dark shadow-sm">
+            <button type="submit" className="bg-brand-light text-white font-bold py-3.5 px-8 rounded-2xl hover:bg-brand-dark transition-colors shadow-sm shadow-brand-light/30 cursor-pointer">
               {editingId ? "Зберегти зміни" : "Зареєструвати"}
             </button>
           </div>
@@ -278,16 +278,16 @@ export default function Students() {
       <div className="bg-white p-6 rounded-[30px] shadow-sm flex flex-col md:flex-row gap-4 items-center">
         <input 
           type="text" 
-          placeholder="Пошук за ім'ям або прізвищем..." 
+          placeholder="Пошук за ім'ям або прізвищем:" 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1 px-5 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-light outline-none"
+          className="flex-1 base-input"
         />
-        <select value={filterBranch} onChange={(e) => setFilterBranch(e.target.value)} className="px-5 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-light outline-none min-w-[200px]">
+        <select value={filterBranch} onChange={(e) => setFilterBranch(e.target.value)} className="px-5 py-3 focus:bg-white bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-light focus:border-brand-light outline-none min-w-[160px] cursor-pointer text-gray-700 transition-all duration-200 hover:border-brand-light/50">
           <option value="">Всі філії</option>
           {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
         </select>
-        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="px-5 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-light outline-none min-w-[160px]">
+        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="px-5 py-3 focus:bg-white bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-light focus:border-brand-light outline-none min-w-[160px] cursor-pointer text-gray-700 transition-all duration-200 hover:border-brand-light/50">
           <option value="">Всі статуси</option>
           <option value="ACTIVE">Активні</option>
           <option value="ARCHIVED">Архівні</option>
@@ -295,45 +295,54 @@ export default function Students() {
       </div>
 
       {/* СПИСОК СТУДЕНТІВ */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="bg-white p-8 rounded-[30px] shadow-sm">
+        <h2 className="text-2xl font-bold text-brand-dark mb-6">Список студентів</h2>
+        
         {loading ? (
-          <p className="text-gray-500 ml-2">Завантаження...</p>
+          <p className="text-gray-500">Завантаження...</p>
         ) : students.length === 0 ? (
-          <p className="text-gray-500 ml-2">Студентів не знайдено.</p>
+          <div className="text-center py-10 bg-gray-50 rounded-[20px] border border-dashed border-gray-300">
+            <p className="text-gray-500 font-medium">Жодного студента ще не знайдено.</p>
+          </div>
         ) : (
-          students.map((student) => {
-            const branchName = branches.find(b => b.id === student.branch)?.name || `Філія #${student.branch}`;
-            return (
-              <div key={student.id} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm relative">
-                <button 
-                  onClick={() => handleToggleStatus(student)}
-                  type="button"
-                  title="Натисніть, щоб змінити статус"
-                  className={`absolute top-6 right-6 px-3 py-1 rounded-full text-xs font-bold cursor-pointer transition-colors duration-300 ${
-                    student.status === 'ACTIVE' 
-                      ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-                      : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                  }`}
-                >
-                  {student.status === 'ACTIVE' ? 'Активний' : 'Архівований'}
-                </button>
-                
-                <h3 className="text-xl font-bold text-brand-dark mb-3 pr-20 truncate">{student.first_name} {student.last_name}</h3>
-                
-                <div className="space-y-1.5 text-sm text-gray-600">
-                  <p className="truncate"><span className="font-semibold text-gray-800">Філія:</span> {branchName}</p>
-                  {student.phone && <p className="truncate"><span className="font-semibold text-gray-800">Телефон:</span> {student.phone}</p>}
-                  {student.date_of_birth && <p className="truncate"><span className="font-semibold text-gray-800">Дата народження:</span> {student.date_of_birth}</p>}
-                </div>
-                
-                <div className="mt-6 pt-4 border-t border-gray-100 flex justify-end">
-                  <button onClick={() => handleEditClick(student)} className="text-brand-light font-semibold hover:text-brand-dark text-sm cursor-pointer">
-                    Редагувати
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {students.map((student) => {
+              const branchName = branches.find(b => b.id === student.branch)?.name || `Філія #${student.branch}`;
+              return (
+                <div key={student.id} className="bg-slate-50 p-6 rounded-3xl border border-gray-100 hover:shadow-md transition-shadow duration-300 relative">
+                  <button 
+                    onClick={() => handleToggleStatus(student)}
+                    type="button"
+                    title="Натисніть, щоб змінити статус"
+                    className={`absolute top-6 right-6 px-3 py-1 rounded-full text-xs font-bold cursor-pointer transition-colors duration-300 ${
+                      student.status === 'ACTIVE' 
+                        ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                        : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                    }`}
+                  >
+                    {student.status === 'ACTIVE' ? 'Активний' : 'Архівований'}
                   </button>
+                  
+                  <h3 className="text-xl font-bold text-brand-dark mb-3 pr-20 truncate">{student.first_name} {student.last_name}</h3>
+                  
+                  <div className="space-y-1.5 text-sm text-gray-600">
+                    <p className="truncate"><span className="font-semibold text-gray-800">Філія:</span> {branchName}</p>
+                    {student.phone && <p className="truncate"><span className="font-semibold text-gray-800">Телефон:</span> {student.phone}</p>}
+                    {student.date_of_birth && <p className="truncate"><span className="font-semibold text-gray-800">Дата народження:</span> {student.date_of_birth}</p>}
+                  </div>
+                  
+                  <div className="mt-6 pt-4 border-t border-gray-200 flex justify-end">
+                    <button 
+                      onClick={() => handleEditClick(student)} 
+                      className="text-brand-light font-semibold hover:text-brand-dark transition-colors text-sm cursor-pointer"
+                    >
+                      Редагувати
+                    </button>
+                  </div>
                 </div>
-              </div>
-            );
-          })
+              );
+            })}
+          </div>
         )}
       </div>
     </div>

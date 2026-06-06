@@ -162,13 +162,13 @@ export default function Groups() {
               <label className="block text-sm text-brand-dark font-semibold mb-2">Назва групи *</label>
               <input type="text" required value={name} 
               onChange={e => setName(e.target.value)} 
-              className="w-full px-5 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-light focus:border-brand-light outline-none transition-all" 
+              className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-light focus:border-brand-light focus:bg-white outline-none transition-all duration-200 text-gray-700" 
               placeholder="Нап.: QA 22" />
             </div>
             
             <div>
               <label className="block text-sm text-brand-dark font-semibold mb-2">Філія *</label>
-              <select required value={branchId} onChange={handleBranchChange} disabled={editingId !== null} className={`w-full px-5 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-light focus:border-brand-light outline-none cursor-pointer text-gray-700 transition-all duration-200 hover:border-brand-light/50 ${editingId ? 'bg-gray-100 cursor-not-allowed text-gray-500' : ''}`}>
+              <select required value={branchId} onChange={handleBranchChange} disabled={editingId !== null} className={`w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-light focus:border-brand-light focus:bg-white outline-none transition-all duration-200 text-gray-700 cursor-pointer ${editingId ? 'bg-gray-100 cursor-not-allowed text-gray-500' : ''}`}>
                 <option value="" className="text-gray-500">Оберіть філію</option>
                 {branches.map(b => (
                   <option key={b.id} value={b.id} className="text-gray-700 py-1">{b.name}</option>
@@ -208,7 +208,7 @@ export default function Groups() {
 
           <div className="flex justify-end gap-3">
             {editingId && <button type="button" onClick={handleCancelEdit} className="bg-gray-100 text-gray-600 font-bold py-3.5 px-6 rounded-2xl hover:bg-gray-200 cursor-pointer transition-colors">Скасувати</button>}
-            <button type="submit" className="bg-brand-light text-white font-bold py-3.5 px-8 rounded-2xl hover:bg-brand-dark shadow-sm cursor-pointer transition-colors">
+            <button type="submit" className="bg-brand-light text-white font-bold py-3.5 px-8 rounded-2xl hover:bg-brand-dark transition-colors shadow-sm shadow-brand-light/30 cursor-pointer">
               {editingId ? "Зберегти зміни" : "Створити групу"}
             </button>
           </div>
@@ -222,57 +222,66 @@ export default function Groups() {
           placeholder="Пошук груп:" 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1 px-5 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-light focus:border-brand-light outline-none"
+          className="base-input"
         />
-        <select value={filterBranch} onChange={(e) => setFilterBranch(e.target.value)} className="px-5 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-light focus:border-brand-light outline-none min-w-[200px] cursor-pointer text-gray-700 transition-all duration-200 hover:border-brand-light/50">
+        <select value={filterBranch} onChange={(e) => setFilterBranch(e.target.value)} className="px-5 py-3 focus:bg-white bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-light focus:border-brand-light outline-none min-w-[200px] cursor-pointer text-gray-700 transition-all duration-200 hover:border-brand-light/50">
           <option value="" className="text-gray-500">Всі філії</option>
           {branches.map(b => <option key={b.id} value={b.id} className="text-gray-700 py-1">{b.name}</option>)}
         </select>
-        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="px-5 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-light focus:border-brand-light outline-none min-w-[160px] cursor-pointer text-gray-700 transition-all duration-200 hover:border-brand-light/50">
+        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="px-5 py-3 focus:bg-white bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-light focus:border-brand-light outline-none min-w-[160px] cursor-pointer text-gray-700 transition-all duration-200 hover:border-brand-light/50">
           <option value="" className="text-gray-500">Всі статуси</option>
           <option value="ACTIVE" className="text-gray-700 py-1">Активні</option>
           <option value="ARCHIVED" className="text-gray-700 py-1">Архівні</option>
         </select>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="bg-white p-8 rounded-[30px] shadow-sm">
+        <h2 className="text-2xl font-bold text-brand-dark mb-6">Список груп</h2>
+        
         {loading ? (
-          <p className="text-gray-500 ml-2">Завантаження...</p>
+          <p className="text-gray-500">Завантаження...</p>
         ) : groups.length === 0 ? (
-          <p className="text-gray-500 ml-2">Груп не знайдено.</p>
+          <div className="text-center py-10 bg-gray-50 rounded-[20px] border border-dashed border-gray-300">
+            <p className="text-gray-500 font-medium">Жодної групи ще не знайдено.</p>
+          </div>
         ) : (
-          groups.map((group) => {
-            const branchName = branches.find(b => b.id === group.branch)?.name || `Філія #${group.branch}`;
-            return (
-              <div key={group.id} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm relative">
-                <button 
-                  onClick={() => handleToggleStatus(group)}
-                  type="button"
-                  title="Натисніть, щоб змінити статус"
-                  className={`absolute top-6 right-6 px-3 py-1 rounded-full text-xs font-bold cursor-pointer transition-colors duration-300 ${
-                    group.status === 'ACTIVE' 
-                      ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-                      : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                  }`}
-                >
-                  {group.status === 'ACTIVE' ? 'Активна' : 'Архівована'}
-                </button>
-                
-                <h3 className="text-xl font-bold text-brand-dark mb-3 pr-20 truncate">{group.name}</h3>
-                
-                <div className="space-y-1.5 text-sm text-gray-600">
-                  <p className="truncate"><span className="font-semibold text-gray-800">Філія:</span> {branchName}</p>
-                  <p className="truncate"><span className="font-semibold text-gray-800">Студентів у групі:</span> {group.students?.length || 0}</p>
-                </div>
-                
-                <div className="mt-6 pt-4 border-t border-gray-100 flex justify-end">
-                  <button onClick={() => handleEditClick(group)} className="text-brand-light font-semibold hover:text-brand-dark text-sm cursor-pointer transition-colors">
-                    Редагувати
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {groups.map((group) => {
+              const branchName = branches.find(b => b.id === group.branch)?.name || `Філія #${group.branch}`;
+              return (
+                <div key={group.id} className="bg-slate-50 p-6 rounded-3xl border border-gray-100 hover:shadow-md transition-shadow duration-300 relative">
+                  <button 
+                    onClick={() => handleToggleStatus(group)}
+                    type="button"
+                    title="Натисніть, щоб змінити статус"
+                    className={`absolute top-6 right-6 px-3 py-1 rounded-full text-xs font-bold cursor-pointer transition-colors duration-300 ${
+                      group.status === 'ACTIVE' 
+                        ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                        : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                    }`}
+                  >
+                    {group.status === 'ACTIVE' ? 'Активна' : 'Архівована'}
                   </button>
+                  
+                  <h3 className="text-xl font-bold text-brand-dark mb-3 pr-20 truncate">{group.name}</h3>
+                  
+                  <div className="space-y-1.5 text-sm text-gray-600">
+                    <p className="truncate"><span className="font-semibold text-gray-800">Філія:</span> {branchName}</p>
+                    <p className="truncate"><span className="font-semibold text-gray-800">Студентів у групі:</span> {group.students?.length || 0}</p>
+                  </div>
+                  
+                  <div className="mt-6 pt-4 border-t border-gray-200 flex justify-end">
+                    <button 
+                      onClick={() => handleEditClick(group)} 
+                      className="text-brand-light font-semibold hover:text-brand-dark transition-colors text-sm cursor-pointer"
+                    >
+                      Редагувати
+                    </button>
+                  </div>
                 </div>
-              </div>
-            );
-          })
+              );
+            })}
+          </div>
         )}
       </div>
     </div>

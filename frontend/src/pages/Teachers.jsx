@@ -128,7 +128,7 @@ export default function Teachers() {
               maxLength={50}
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-light focus:bg-white outline-none transition-all text-gray-700"
+              className="base-input"
               placeholder="Нап.: Іван"
             />
           </div>
@@ -140,7 +140,7 @@ export default function Teachers() {
               maxLength={50}
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-light focus:bg-white outline-none transition-all text-gray-700"
+              className="base-input"
               placeholder="Нап.: Шевченко"
             />
           </div>
@@ -152,7 +152,7 @@ export default function Teachers() {
               maxLength={20}
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-light focus:bg-white outline-none transition-all text-gray-700"
+              className="base-input"
               placeholder="+380ххххххххх"
             />
           </div>
@@ -165,7 +165,7 @@ export default function Teachers() {
               required={!editingId}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-light focus:bg-white outline-none transition-all text-gray-700"
+              className="base-input"
               placeholder={editingId ? "Залиште порожнім" : "xxxxxxx"}
             />
           </div>
@@ -233,10 +233,7 @@ export default function Teachers() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {teachers.map((teacher) => (
               <div key={teacher.id} className="bg-slate-50 p-6 rounded-3xl border border-gray-100 hover:shadow-md transition-shadow relative">
-                
-                <div className="w-14 h-14 bg-brand-light/10 text-brand-dark rounded-full flex items-center justify-center text-xl font-bold mb-4">
-                  {teacher.first_name?.[0] || "T"}
-                </div>
+
                 
                 <h3 className="text-xl font-bold text-brand-dark mb-1 truncate">
                   {teacher.first_name} {teacher.last_name}
