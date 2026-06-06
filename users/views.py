@@ -10,11 +10,12 @@ from .serializers import CustomTokenObtainPairSerializer
 from rest_framework import viewsets
 from django.contrib.auth import get_user_model
 from .serializers import UserSerializer
+from rest_framework.permissions import AllowAny
 from django.db.models import Q
 from core.permissions import IsAdminOrReadOnly
 
 class CustomTokenObtainPairView(TokenObtainPairView):
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [AllowAny]
     serializer_class = CustomTokenObtainPairSerializer
 
 User = get_user_model()
