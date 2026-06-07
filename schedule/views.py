@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from .models import LessonTemplate, Lesson, Attendance
 from .serializers import LessonTemplateSerializer, LessonSerializer, AttendanceSerializer
 from core.permissions import IsAdminOrReadOnly, IsAdminOrTeacherOfLesson
+from django.db.models import Q
 
 class LessonViewSet(NoDeleteViewSet):
     permission_classes = [IsAdminOrReadOnly]
@@ -24,6 +25,7 @@ class LessonViewSet(NoDeleteViewSet):
         student_id = self.request.query_params.get('student')
         group_id = self.request.query_params.get('group')
         status = self.request.query_params.get('status')
+        branch_id = self.request.query_params.get('branch')
 
         if date:
             queryset = queryset.filter(date=date)
@@ -35,6 +37,13 @@ class LessonViewSet(NoDeleteViewSet):
             queryset = queryset.filter(group_id=group_id)
         if status:
             queryset = queryset.filter(status=status)
+
+        if branch_id:
+            queryset = queryset.filter(
+                Q(subject__branch_id=branch_id) |
+                Q(student__branch_id=branch_id) |
+                Q(group__branch_id=branch_id)
+            )
 
         return queryset.order_by('date', 'start_time')
 

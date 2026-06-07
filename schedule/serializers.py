@@ -25,12 +25,16 @@ class LessonSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
        
-        teacher = data.get('teacher')
-        student = data.get('student')
-        group = data.get('group')
-        date = data.get('date')
-        start_time = data.get('start_time')
-        end_time = data.get('end_time')
+        teacher = data.get('teacher', getattr(self.instance, 'teacher', None))
+        student = data.get('student', getattr(self.instance, 'student', None))
+        group = data.get('group', getattr(self.instance, 'group', None))
+        date = data.get('date', getattr(self.instance, 'date', None))
+        start_time = data.get('start_time', getattr(self.instance, 'start_time', None))
+        end_time = data.get('end_time', getattr(self.instance, 'end_time', None))
+        status = data.get('status', getattr(self.instance, 'status', None))
+
+        if status == 'CANCELLED':
+            return data
 
         if start_time and end_time and start_time >= end_time:
             raise serializers.ValidationError({
@@ -115,16 +119,16 @@ class LessonTemplateSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'teacher', 'subject', 'student', 'group', 
             'days_of_week', 'start_time', 'end_time', 
-            'start_date', 'end_date'
+            'start_date', 'end_date', 'is_active'
         ]
 
     def validate(self, data):
-        student = data.get('student')
-        group = data.get('group')
-        start_date = data.get('start_date')
-        end_date = data.get('end_date')
-        start_time = data.get('start_time')
-        end_time = data.get('end_time')
+        student = data.get('student', getattr(self.instance, 'student', None))
+        group = data.get('group', getattr(self.instance, 'group', None))
+        start_date = data.get('start_date', getattr(self.instance, 'start_date', None))
+        end_date = data.get('end_date', getattr(self.instance, 'end_date', None))
+        start_time = data.get('start_time', getattr(self.instance, 'start_time', None))
+        end_time = data.get('end_time', getattr(self.instance, 'end_time', None))
 
         # або студент, або група
         if student and group:

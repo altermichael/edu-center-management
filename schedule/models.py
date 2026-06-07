@@ -13,6 +13,7 @@ class LessonTemplate(models.Model):
     end_time = models.TimeField()
     start_date = models.DateField()
     end_date = models.DateField()
+    is_active = models.BooleanField(default=True)
 
 class Lesson(models.Model):
     STATUS_CHOICES = (

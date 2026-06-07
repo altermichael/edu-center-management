@@ -4,8 +4,8 @@ import api from "../api";
 export default function SubscriptionPlans() {
   const [plans, setPlans] = useState([]);
   const [branches, setBranches] = useState([]);
-  const [allSubjects, setAllSubjects] = useState([]); // Усі предмети для перекладу ID -> Назва
-  const [branchSubjects, setBranchSubjects] = useState([]); // Предмети тільки обраної філії (для форми)
+  const [allSubjects, setAllSubjects] = useState([]);
+  const [branchSubjects, setBranchSubjects] = useState([]);
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -18,6 +18,16 @@ export default function SubscriptionPlans() {
   const [branchId, setBranchId] = useState("");
   const [type, setType] = useState("INDIVIDUAL");
   const [selectedSubjects, setSelectedSubjects] = useState([]);
+
+  const [students, setStudents] = useState([]);
+  const [studentSubscriptions, setStudentSubscriptions] = useState([]);
+
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [assignError, setAssignError] = useState("");
+  const [selectedPlanForAssign, setSelectedPlanForAssign] = useState(null);
+  const [assignStudentId, setAssignStudentId] = useState("");
+  const [assignSubjectId, setAssignSubjectId] = useState("");
+  const [assignStartDate, setAssignStartDate] = useState(new Date().toISOString().split('T')[0]);
   
   // динамічна сітка цін
   const [pricingGrid, setPricingGrid] = useState([
@@ -28,20 +38,21 @@ export default function SubscriptionPlans() {
 
   useEffect(() => {
     fetchBranches();
-    fetchAllSubjects(); // Завантажуємо всі предмети одразу
+    fetchAllSubjects();
+    fetchStudents();
   }, []);
 
   useEffect(() => {
     fetchPlans();
+    fetchStudentSubscriptions();
   }, [filterBranch, filterStatus]);
 
   useEffect(() => {
     if (branchId) {
-      // Фільтруємо предмети локально, якщо вони вже завантажені
       const filtered = allSubjects.filter(sub => sub.branch === parseInt(branchId) && sub.status === 'ACTIVE');
       setBranchSubjects(filtered);
       
-      // Якщо це не редагування (тобто ми просто змінили філію), очищаємо вибрані предмети
+      // Якщо це не редагування (нап. ми просто змінили філію), очищаємо вибрані предмети
       if (!editingId) {
          setSelectedSubjects([]);
       }
@@ -62,7 +73,6 @@ export default function SubscriptionPlans() {
 
   const fetchAllSubjects = async () => {
     try {
-      // Завантажуємо без фільтрів (або можна додати пагінацію, якщо їх дуже багато)
       const response = await api.get("api/v1/core/subjects/");
       setAllSubjects(response.data.results || response.data);
     } catch (err) {
@@ -187,6 +197,60 @@ export default function SubscriptionPlans() {
     } catch (err) {
       console.error(err.response?.data);
       setError("Помилка при збереженні. Перевірте правильність даних.");
+    }
+  };
+
+  const fetchStudents = async () => {
+    try {
+      const response = await api.get("api/v1/students/students/");
+      setStudents(response.data.results || response.data);
+    } catch (err) {
+      console.error("Помилка завантаження студентів");
+    }
+  };
+
+  const fetchStudentSubscriptions = async () => {
+    try {
+      const response = await api.get("api/v1/subscriptions/student-subscriptions/");
+      setStudentSubscriptions(response.data.results || response.data);
+    } catch (err) {
+      console.error("Помилка завантаження підписок");
+    }
+  };
+
+  const openAssignModal = (plan) => {
+    setSelectedPlanForAssign(plan);
+    setAssignStudentId("");
+    setAssignSubjectId("");
+    setAssignStartDate(new Date().toISOString().split('T')[0]);
+    setAssignError("");
+    setAssignModalOpen(true);
+  };
+
+  const handleAssignSubmit = async (e) => {
+    e.preventDefault();
+    setAssignError(""); // Очищаємо попередню помилку перед новим запитом
+
+    try {
+      const payload = {
+        student: assignStudentId,
+        plan: selectedPlanForAssign.id,
+        subject: assignSubjectId,
+        start_date: assignStartDate
+      };
+      const response = await api.post("api/v1/subscriptions/student-subscriptions/", payload);
+   
+      setStudentSubscriptions([...studentSubscriptions, response.data]);
+      setAssignModalOpen(false); 
+      
+    } catch (err) {
+      console.error(err);
+  
+      const errorMessage = err.response?.data?.detail 
+        || err.response?.data?.non_field_errors?.[0] 
+        || "Помилка призначення плану. Перевірте дані.";
+        
+      setAssignError(errorMessage);
     }
   };
 
@@ -376,15 +440,104 @@ export default function SubscriptionPlans() {
                     </table>
                   </div>
                   
-                  <div className="mt-5 pt-4 border-t border-gray-200 flex justify-end">
-                    <button onClick={() => handleEditClick(plan)} className="text-brand-light font-semibold hover:text-brand-dark text-sm cursor-pointer">Редагувати</button>
+                  <div className="mt-4 bg-white p-3 rounded-xl border border-gray-100">
+                    <p className="text-xs font-semibold text-gray-500 mb-2">Призначено студентам:</p>
+                    <div className="flex flex-col gap-1.5 max-h-24 overflow-y-auto">
+                      {studentSubscriptions.filter(sub => sub.plan === plan.id).length > 0 ? (
+                        studentSubscriptions
+                          .filter(sub => sub.plan === plan.id)
+                          .map(sub => {
+                            const studentObj = students.find(s => s.id === sub.student);
+                            const studentName = studentObj ? `${studentObj.first_name} ${studentObj.last_name}` : `Студент #${sub.student}`;
+                            return (
+                              <div key={sub.id} className="text-xs flex justify-between items-center bg-gray-50 px-2 py-1 rounded">
+                                <span className="font-medium text-brand-dark">{studentName}</span>
+                                <span className="text-gray-400">{sub.subject_name}</span>
+                              </div>
+                            );
+                          })
+                      ) : (
+                        <span className="text-xs text-gray-400 italic">Ще нікому не призначено</span>
+                      )}
+                    </div>
                   </div>
+                  
+                  <div className="mt-5 pt-4 border-t border-gray-200 flex justify-between items-center">
+                    <button 
+                      onClick={() => openAssignModal(plan)} 
+                      className="bg-brand-light/10 text-brand-light px-3 py-1.5 rounded-lg font-semibold hover:bg-brand-light hover:text-white transition-colors text-sm cursor-pointer"
+                    >
+                      + Призначити
+                    </button>
+                    <button onClick={() => handleEditClick(plan)} className="text-gray-400 hover:text-brand-dark font-semibold text-sm cursor-pointer">
+                      Редагувати
+                    </button>
+                  </div>
+
+
                 </div>
               );
             })}
           </div>
         )}
       </div>
+      {/* Модалка призначення */}
+      {assignModalOpen && selectedPlanForAssign && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-[30px] w-full max-w-md shadow-xl">
+            <h2 className="text-xl font-bold text-brand-dark mb-4">Призначити план</h2>
+
+            {assignError && (
+              <div className="bg-red-50 text-red-600 p-4 rounded-2xl mb-6 text-sm font-medium border border-red-100">
+                {assignError}
+              </div>
+            )}
+
+            <p className="text-sm text-gray-500 mb-6">
+              План: <strong className="text-brand-dark">{selectedPlanForAssign.name}</strong>
+            </p>
+
+            <form onSubmit={handleAssignSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-brand-dark mb-1">Студент *</label>
+                <select required value={assignStudentId} onChange={e => setAssignStudentId(e.target.value)} className="base-input">
+                  <option value="">Оберіть студента</option>
+                  {students
+                    .filter(s => s.branch === selectedPlanForAssign.branch) // тільки студенти цієї філії
+                    .map(s => (
+                      <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-brand-dark mb-1">Предмет *</label>
+                <select required value={assignSubjectId} onChange={e => setAssignSubjectId(e.target.value)} className="base-input">
+                  <option value="">Оберіть предмет</option>
+                  {selectedPlanForAssign.subjects.map(subId => {
+                    const subInfo = allSubjects.find(s => s.id === subId);
+                    return subInfo ? <option key={subId} value={subId}>{subInfo.name}</option> : null;
+                  })}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-brand-dark mb-1">Дата початку *</label>
+                <input required type="date" value={assignStartDate} onChange={e => setAssignStartDate(e.target.value)} className="base-input" />
+              </div>
+
+              <div className="flex justify-end gap-3 mt-6">
+                <button type="button" onClick={() => setAssignModalOpen(false)} className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl font-semibold hover:bg-gray-200">
+                  Скасувати
+                </button>
+                <button type="submit" className="px-4 py-2 bg-brand-light text-white rounded-xl font-bold hover:bg-brand-dark">
+                  Призначити
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

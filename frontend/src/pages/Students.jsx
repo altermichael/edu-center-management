@@ -29,6 +29,14 @@ export default function Students() {
   const [parentEmail, setParentEmail] = useState("");
   const [parentRelationship, setParentRelationship] = useState("");
 
+  // --- СТАНИ ДЛЯ ДЕТАЛЬНОЇ КАРТКИ СТУДЕНТА (Модалка) ---
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [selectedStudentDetail, setSelectedStudentDetail] = useState(null);
+  const [detailParent, setDetailParent] = useState(null);
+  const [detailSubscriptions, setDetailSubscriptions] = useState([]);
+  const [detailAttendance, setDetailAttendance] = useState([]);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+
   const formRef = useRef(null);
 
   useEffect(() => {
@@ -63,6 +71,36 @@ export default function Students() {
     } catch (err) {
       setError("Помилка при завантаженні студентів");
       setLoading(false);
+    }
+  };
+
+  // --- ФУНКЦІЯ ВІДКРИТТЯ ДЕТАЛЬНОЇ КАРТКИ ---
+  const handleOpenDetails = async (student) => {
+    setSelectedStudentDetail(student);
+    setDetailModalOpen(true);
+    setLoadingDetails(true);
+
+    try {
+      // 1. Завантажуємо батьків (якщо є)
+      if (student.parent) {
+        const parentRes = await api.get(`api/v1/students/parents/${student.parent}/`);
+        setDetailParent(parentRes.data);
+      } else {
+        setDetailParent(null);
+      }
+
+      // 2. Завантажуємо підписки студента
+      const subsRes = await api.get(`api/v1/subscriptions/student-subscriptions/?student=${student.id}`);
+      setDetailSubscriptions(subsRes.data.results || subsRes.data);
+
+      // 3. Завантажуємо історію відвідуваності
+      const attRes = await api.get(`api/v1/schedule/attendance/?student=${student.id}`);
+      setDetailAttendance(attRes.data.results || attRes.data);
+
+    } catch (err) {
+      console.error("Помилка завантаження деталей студента", err);
+    } finally {
+      setLoadingDetails(false);
     }
   };
 
@@ -187,7 +225,7 @@ export default function Students() {
     <div className="space-y-6" ref={formRef}>
       
       {/* ФОРМА */}
-      <div className="bg-white p-8 rounded-[30px] shadow-sm">
+      <div className="bg-white p-8 rounded-[30px] shadow-sm border border-gray-100">
         <h2 className="text-2xl text-brand-dark font-bold mb-6">
           {editingId ? <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-[13px]">Редагування студента</span> : "Реєстрація студента"}
         </h2>
@@ -213,7 +251,7 @@ export default function Students() {
             </div>
             <div>
               <label className="block text-sm text-brand-dark font-semibold mb-2">Філія *</label>
-              <select required value={branchId} onChange={e => setBranchId(e.target.value)} className="base-input">
+              <select required value={branchId} onChange={e => setBranchId(e.target.value)} className="base-input cursor-pointer">
                 <option value="">Оберіть філію</option>
                 {branches.map(b => (
                   <option key={b.id} value={b.id}>{b.name}</option>
@@ -266,7 +304,7 @@ export default function Students() {
           </div>
 
           <div className="flex justify-end gap-3">
-            {editingId && <button type="button" onClick={handleCancelEdit} className="bg-gray-100 text-gray-600 font-bold py-3.5 px-6 rounded-2xl hover:bg-gray-200">Скасувати</button>}
+            {editingId && <button type="button" onClick={handleCancelEdit} className="bg-gray-100 text-gray-600 font-bold py-3.5 px-6 rounded-2xl hover:bg-gray-200 cursor-pointer">Скасувати</button>}
             <button type="submit" className="bg-brand-light text-white font-bold py-3.5 px-8 rounded-2xl hover:bg-brand-dark transition-colors shadow-sm shadow-brand-light/30 cursor-pointer">
               {editingId ? "Зберегти зміни" : "Зареєструвати"}
             </button>
@@ -275,7 +313,7 @@ export default function Students() {
       </div>
 
       {/* ПАНЕЛЬ ПОШУКУ ТА ФІЛЬТРІВ */}
-      <div className="bg-white p-6 rounded-[30px] shadow-sm flex flex-col md:flex-row gap-4 items-center">
+      <div className="bg-white p-6 rounded-[30px] shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 items-center">
         <input 
           type="text" 
           placeholder="Пошук за ім'ям або прізвищем:" 
@@ -295,7 +333,7 @@ export default function Students() {
       </div>
 
       {/* СПИСОК СТУДЕНТІВ */}
-      <div className="bg-white p-8 rounded-[30px] shadow-sm">
+      <div className="bg-white p-8 rounded-[30px] shadow-sm border border-gray-100">
         <h2 className="text-2xl font-bold text-brand-dark mb-6">Список студентів</h2>
         
         {loading ? (
@@ -309,7 +347,7 @@ export default function Students() {
             {students.map((student) => {
               const branchName = branches.find(b => b.id === student.branch)?.name || `Філія #${student.branch}`;
               return (
-                <div key={student.id} className="bg-slate-50 p-6 rounded-3xl border border-gray-100 hover:shadow-md transition-shadow duration-300 relative">
+                <div key={student.id} className="bg-slate-50 p-6 rounded-3xl border border-gray-100 hover:shadow-md transition-shadow duration-300 relative flex flex-col">
                   <button 
                     onClick={() => handleToggleStatus(student)}
                     type="button"
@@ -325,16 +363,23 @@ export default function Students() {
                   
                   <h3 className="text-xl font-bold text-brand-dark mb-3 pr-20 truncate">{student.first_name} {student.last_name}</h3>
                   
-                  <div className="space-y-1.5 text-sm text-gray-600">
+                  <div className="space-y-1.5 text-sm text-gray-600 flex-1">
                     <p className="truncate"><span className="font-semibold text-gray-800">Філія:</span> {branchName}</p>
                     {student.phone && <p className="truncate"><span className="font-semibold text-gray-800">Телефон:</span> {student.phone}</p>}
                     {student.date_of_birth && <p className="truncate"><span className="font-semibold text-gray-800">Дата народження:</span> {student.date_of_birth}</p>}
                   </div>
                   
-                  <div className="mt-6 pt-4 border-t border-gray-200 flex justify-end">
+                  {/* ОНОВЛЕНИЙ БЛОК КНОПОК */}
+                  <div className="mt-6 pt-4 border-t border-gray-200 flex justify-between items-center">
+                    <button 
+                      onClick={() => handleOpenDetails(student)} 
+                      className="text-brand-light bg-brand-light/10 px-4 py-2 rounded-xl font-semibold hover:bg-brand-light hover:text-white transition-colors text-sm cursor-pointer"
+                    >
+                      Детальніше
+                    </button>
                     <button 
                       onClick={() => handleEditClick(student)} 
-                      className="text-brand-light font-semibold hover:text-brand-dark transition-colors text-sm cursor-pointer"
+                      className="text-gray-400 hover:text-brand-dark font-semibold transition-colors text-sm cursor-pointer"
                     >
                       Редагувати
                     </button>
@@ -345,6 +390,112 @@ export default function Students() {
           </div>
         )}
       </div>
+
+      {/* --- МОДАЛКА ДЕТАЛЬНОЇ КАРТКИ СТУДЕНТА --- */}
+      {detailModalOpen && selectedStudentDetail && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-6 md:p-8 rounded-[30px] w-full max-w-3xl shadow-xl max-h-[90vh] overflow-y-auto">
+            
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-brand-dark">
+                  {selectedStudentDetail.first_name} {selectedStudentDetail.last_name}
+                </h2>
+                <span className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-bold ${selectedStudentDetail.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}>
+                  {selectedStudentDetail.status === 'ACTIVE' ? 'Активний' : 'Архівований'}
+                </span>
+              </div>
+              <button onClick={() => setDetailModalOpen(false)} className="bg-gray-100 text-gray-600 hover:bg-gray-200 w-10 h-10 rounded-full font-bold cursor-pointer flex items-center justify-center">
+                ✕
+              </button>
+            </div>
+
+            {loadingDetails ? (
+              <div className="py-10 text-center text-gray-500 font-medium">Завантаження інформації...</div>
+            ) : (
+              <div className="space-y-8">
+                
+                {/* 1. Особиста інформація */}
+                <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100">
+                  <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Контактна інформація</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
+                    <p><span className="font-semibold text-gray-900">Телефон:</span> {selectedStudentDetail.phone || '—'}</p>
+                    <p><span className="font-semibold text-gray-900">Email:</span> {selectedStudentDetail.email || '—'}</p>
+                    <p><span className="font-semibold text-gray-900">Дата народження:</span> {selectedStudentDetail.date_of_birth || '—'}</p>
+                    <p><span className="font-semibold text-gray-900">Адреса:</span> {selectedStudentDetail.address || '—'}</p>
+                  </div>
+                </div>
+
+                {/* 2. Інформація про батьків */}
+                {detailParent && (
+                  <div className="bg-blue-50/50 p-5 rounded-2xl border border-blue-100">
+                    <h3 className="text-sm font-bold text-blue-400 uppercase tracking-wider mb-4">Батьки / Опікуни</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
+                      <p><span className="font-semibold text-gray-900">ПІБ:</span> {detailParent.name}</p>
+                      <p><span className="font-semibold text-gray-900">Ким доводиться:</span> {detailParent.relationship || '—'}</p>
+                      <p><span className="font-semibold text-gray-900">Телефон:</span> {detailParent.phone}</p>
+                      <p><span className="font-semibold text-gray-900">Email:</span> {detailParent.email || '—'}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. Підписки (Subscriptions) */}
+                <div>
+                  <h3 className="text-lg font-bold text-brand-dark mb-4">Активні підписки</h3>
+                  {detailSubscriptions.length === 0 ? (
+                    <p className="text-sm text-gray-500 italic">Немає призначених планів.</p>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {detailSubscriptions.map(sub => (
+                        <div key={sub.id} className="bg-white border border-gray-200 p-4 rounded-xl flex flex-col gap-1">
+                          <span className="font-bold text-brand-dark">{sub.plan_name}</span>
+                          <span className="text-sm text-gray-500">Предмет: <span className="font-semibold text-gray-700">{sub.subject_name}</span></span>
+                          <span className="text-xs text-gray-400">Початок: {sub.start_date}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* 4. Історія відвідуваності (Attendance) */}
+                <div>
+                  <h3 className="text-lg font-bold text-brand-dark mb-4">Історія відвідуваності</h3>
+                  {detailAttendance.length === 0 ? (
+                    <p className="text-sm text-gray-500 italic">Історія відсутня.</p>
+                  ) : (
+                    <div className="overflow-x-auto bg-white border border-gray-200 rounded-xl">
+                      <table className="w-full text-left text-sm">
+                        <thead className="bg-gray-50 text-gray-600">
+                          <tr>
+                            <th className="px-4 py-3 font-semibold border-b border-gray-200">ID Уроку</th>
+                            <th className="px-4 py-3 font-semibold border-b border-gray-200">Статус</th>
+                            <th className="px-4 py-3 font-semibold border-b border-gray-200">Нотатки вчителя</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {detailAttendance.map(record => (
+                            <tr key={record.id} className="hover:bg-gray-50">
+                              <td className="px-4 py-3 text-gray-700">#{record.lesson}</td>
+                              <td className="px-4 py-3">
+                                <span className={`px-2 py-1 rounded text-xs font-bold ${record.status === 'PRESENT' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                  {record.status === 'PRESENT' ? 'Присутній' : 'Відсутній'}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-gray-500 italic">{record.note || '—'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

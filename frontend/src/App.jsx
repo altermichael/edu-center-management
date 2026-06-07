@@ -7,7 +7,10 @@ import Students from "./pages/Students";
 import Groups from "./pages/Groups";
 import Subjects from "./pages/Subjects";
 import SubscriptionPlans from "./pages/SubscriptionPlans";
-import Layout from "./components/Layout"; Groups
+import Schedule from "./pages/Schedule";
+import Templates from "./pages/Templates";
+import Attendance from "./pages/Attendance";
+import Layout from "./components/Layout";
 
 function App() {
   return (
@@ -24,6 +27,10 @@ function App() {
           <Route path="/groups" element={<Groups />} />
           <Route path="/subjects" element={<Subjects />} />
           <Route path="/subscriptions" element={<SubscriptionPlans />} />
+          <Route path="/schedule" element={<Schedule />} />
+          <Route path="/templates" element={<Templates />} />
+          <Route path="/attendance" element={<Attendance />} />
+          <Route path="/attendance/:lessonId" element={<Attendance />} />
         </Route>
       </Routes>
     </BrowserRouter>
