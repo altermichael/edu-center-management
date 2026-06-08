@@ -141,8 +141,7 @@ export default function Templates() {
     }
   };
 
-  const handleCreateSubmit = async (e) => {
-    e.preventDefault();
+  const submitData = async (ignoreConflicts = false) => {
     setCreateError("");
 
     if (selectedDays.length === 0) {
@@ -161,7 +160,8 @@ export default function Templates() {
         start_time: formStartTime,
         end_time: formEndTime,
         days_of_week: selectedDays.join(","),
-        is_active: formIsActive
+        is_active: formIsActive,
+        ignore_conflicts: ignoreConflicts
       };
 
       if (lessonType === "INDIVIDUAL") {
@@ -182,14 +182,38 @@ export default function Templates() {
       fetchTemplates();
     } catch (err) {
       console.error(err);
+      
+      // Ловимо нашу специфічну помилку з бекенду
+      if (err.response?.data?.conflicts_detected) {
+        const proceed = window.confirm(
+          "Ваш шаблон містить конфлікти з іншими уроками.\nСтворити шаблон тільки з неконфліктними уроками?"
+        );
+        
+        if (proceed) {
+          // Якщо адміністратор згоден, викликаємо функцію повторно з дозволом
+          submitData(true);
+          return;
+        } else {
+          setCreateError("Створення шаблону скасовано. Будь ласка, змініть час або дату.");
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      // Обробка помилок валідації
       const errorMessage = err.response?.data?.detail 
         || err.response?.data?.non_field_errors?.[0] 
         || err.response?.data?.end_time?.[0]
-        || "Помилка збереження шаблону. Можливо, конфлікт у розкладі.";
+        || "Помилка збереження шаблону. Перевірте введені дані.";
       setCreateError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleCreateSubmit = (e) => {
+    e.preventDefault();
+    submitData(false);
   };
 
   const formatDays = (daysString) => {
@@ -203,7 +227,7 @@ export default function Templates() {
       
       <div className="bg-white p-6 rounded-[30px] shadow-sm border border-gray-100 flex justify-between items-center">
         <h2 className="text-2xl font-bold text-brand-dark">Шаблони регулярних занять</h2>
-        <button onClick={openCreateModal} className="px-5 py-3 bg-brand-light text-white rounded-2xl font-bold hover:bg-brand-dark shadow-sm transition-colors">
+        <button onClick={openCreateModal} className="px-5 py-3 cursor-pointer bg-brand-light text-white rounded-2xl font-bold hover:bg-brand-dark shadow-sm transition-colors">
           + Створити шаблон
         </button>
       </div>

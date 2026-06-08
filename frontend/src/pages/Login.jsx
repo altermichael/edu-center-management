@@ -31,7 +31,7 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
       
       <div className="absolute top-0 left-0 w-64 h-full bg-brand-light hidden md:block"></div>
-      <div className="absolute bottom-0 right-0 w-64 h-64 bg-brand-dark hidden md:block"></div>
+      <div className="absolute bottom-0 right-0 w-64 h-64 rounded-tl-[20px] bg-brand-dark hidden md:block"></div>
 
       <div className="max-w-md w-full bg-white p-10 rounded-[2rem] shadow-xl border border-gray-100 z-10">
         <h2 className="text-3xl font-bold text-center text-brand-dark mb-8">

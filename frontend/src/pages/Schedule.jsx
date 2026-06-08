@@ -202,12 +202,19 @@ export default function Schedule() {
               
               // відображення учасників
               let participantDisplay = "";
-              if (lesson.type === 'INDIVIDUAL') {
-                const studentInfo = students.find(s => s.id === lesson.student);
+              // перевіряємо, чи є у записі id студента
+              if (lesson.student) {
+                const studentInfo = students.find(s => String(s.id) === String(lesson.student));
                 participantDisplay = studentInfo ? `👤 ${studentInfo.first_name} ${studentInfo.last_name}` : '👤 Студент';
-              } else {
-                const groupInfo = groups.find(g => g.id === lesson.group);
+              } 
+              // ящо студента немає, перевіряємо, чи є група
+              else if (lesson.group) {
+                const groupInfo = groups.find(g => String(g.id) === String(lesson.group));
                 participantDisplay = groupInfo ? `👥 ${groupInfo.name}` : '👥 Група';
+              } 
+              // Якщо нічого не вказано
+              else {
+                participantDisplay = 'Учасників не призначено';
               }
 
               return (

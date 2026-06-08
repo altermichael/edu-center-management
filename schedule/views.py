@@ -1,9 +1,13 @@
 from core.views import NoDeleteViewSet
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
 from rest_framework.permissions import IsAuthenticated
 from .models import LessonTemplate, Lesson, Attendance
-from .serializers import LessonTemplateSerializer, LessonSerializer, AttendanceSerializer
-from core.permissions import IsAdminOrReadOnly, IsAdminOrTeacherOfLesson
+from students.models import Student
+from .serializers import LessonTemplateSerializer, LessonSerializer, AttendanceSerializer, BranchStatisticsSerializer
+from core.permissions import IsAdminOrReadOnly, IsAdminOrTeacherOfLesson, IsAdminUser
 from django.db.models import Q
 
 class LessonViewSet(NoDeleteViewSet):
@@ -72,3 +76,41 @@ class LessonTemplateViewSet(NoDeleteViewSet):
     permission_classes = [IsAdminOrReadOnly]
     queryset = LessonTemplate.objects.all()
     serializer_class = LessonTemplateSerializer
+
+class BranchStatisticsView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        branch_id = request.query_params.get('branch')
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        students = Student.objects.filter(status='ACTIVE')
+        lessons = Lesson.objects.all()
+        
+        if branch_id:
+            students = students.filter(branch_id=branch_id)
+            lessons = lessons.filter(subject__branch_id=branch_id)
+        if start_date:
+            lessons = lessons.filter(date__gte=start_date)
+        if end_date:
+            lessons = lessons.filter(date__lte=end_date)
+            
+        active_students = students.count()
+        completed_lessons = lessons.filter(status='COMPLETED').count()
+        cancelled_lessons = lessons.filter(status='CANCELLED').count()
+        
+        attendances = Attendance.objects.filter(lesson__in=lessons)
+        total_records = attendances.count()
+        present_records = attendances.filter(status='PRESENT').count()
+        
+        attendance_percent = (present_records / total_records * 100) if total_records > 0 else 0
+        
+        data = {
+            'active_students': active_students,
+            'completed_lessons': completed_lessons,
+            'cancelled_lessons': cancelled_lessons,
+            'attendance_percent': round(attendance_percent, 1)
+        }
+        
+        serializer = BranchStatisticsSerializer(data)
+        return Response(serializer.data)

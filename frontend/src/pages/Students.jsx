@@ -12,7 +12,7 @@ export default function Students() {
   const [filterBranch, setFilterBranch] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
 
-  // Стан форми студента
+  // Стани форми студента
   const [editingId, setEditingId] = useState(null);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -22,14 +22,14 @@ export default function Students() {
   const [address, setAddress] = useState("");
   const [branchId, setBranchId] = useState("");
   
-  // Стан форми батьків
+  // Стани форми батьків
   const [parentId, setParentId] = useState(null);
   const [parentName, setParentName] = useState("");
   const [parentPhone, setParentPhone] = useState("");
   const [parentEmail, setParentEmail] = useState("");
   const [parentRelationship, setParentRelationship] = useState("");
 
-  // --- СТАНИ ДЛЯ ДЕТАЛЬНОЇ КАРТКИ СТУДЕНТА (Модалка) ---
+  // Стани для модалки детальніше
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedStudentDetail, setSelectedStudentDetail] = useState(null);
   const [detailParent, setDetailParent] = useState(null);
@@ -74,14 +74,14 @@ export default function Students() {
     }
   };
 
-  // --- ФУНКЦІЯ ВІДКРИТТЯ ДЕТАЛЬНОЇ КАРТКИ ---
+  // Деталі
   const handleOpenDetails = async (student) => {
     setSelectedStudentDetail(student);
     setDetailModalOpen(true);
     setLoadingDetails(true);
 
     try {
-      // 1. Завантажуємо батьків (якщо є)
+      // Завантажуємо батьків (якщо є)
       if (student.parent) {
         const parentRes = await api.get(`api/v1/students/parents/${student.parent}/`);
         setDetailParent(parentRes.data);
@@ -89,12 +89,12 @@ export default function Students() {
         setDetailParent(null);
       }
 
-      // 2. Завантажуємо підписки студента
+      // Завантажуємо підписки студента
       const subsRes = await api.get(`api/v1/subscriptions/student-subscriptions/?student=${student.id}`);
       setDetailSubscriptions(subsRes.data.results || subsRes.data);
 
-      // 3. Завантажуємо історію відвідуваності
-      const attRes = await api.get(`api/v1/schedule/attendance/?student=${student.id}`);
+      // Завантажуємо історію відвідуваності
+      const attRes = await api.get(`api/v1/schedule/attendances/?student=${student.id}`);
       setDetailAttendance(attRes.data.results || attRes.data);
 
     } catch (err) {
@@ -224,7 +224,7 @@ export default function Students() {
   return (
     <div className="space-y-6" ref={formRef}>
       
-      {/* ФОРМА */}
+      {/* Форма */}
       <div className="bg-white p-8 rounded-[30px] shadow-sm border border-gray-100">
         <h2 className="text-2xl text-brand-dark font-bold mb-6">
           {editingId ? <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-[13px]">Редагування студента</span> : "Реєстрація студента"}
@@ -312,7 +312,7 @@ export default function Students() {
         </form>
       </div>
 
-      {/* ПАНЕЛЬ ПОШУКУ ТА ФІЛЬТРІВ */}
+      {/* Панель пошуку та фільтрів */}
       <div className="bg-white p-6 rounded-[30px] shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 items-center">
         <input 
           type="text" 
@@ -332,7 +332,7 @@ export default function Students() {
         </select>
       </div>
 
-      {/* СПИСОК СТУДЕНТІВ */}
+      {/* Список студентів */}
       <div className="bg-white p-8 rounded-[30px] shadow-sm border border-gray-100">
         <h2 className="text-2xl font-bold text-brand-dark mb-6">Список студентів</h2>
         
@@ -369,7 +369,7 @@ export default function Students() {
                     {student.date_of_birth && <p className="truncate"><span className="font-semibold text-gray-800">Дата народження:</span> {student.date_of_birth}</p>}
                   </div>
                   
-                  {/* ОНОВЛЕНИЙ БЛОК КНОПОК */}
+                  {/* Кнопки у картках */}
                   <div className="mt-6 pt-4 border-t border-gray-200 flex justify-between items-center">
                     <button 
                       onClick={() => handleOpenDetails(student)} 
@@ -391,7 +391,7 @@ export default function Students() {
         )}
       </div>
 
-      {/* --- МОДАЛКА ДЕТАЛЬНОЇ КАРТКИ СТУДЕНТА --- */}
+      {/* Модалка детальніше */}
       {detailModalOpen && selectedStudentDetail && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white p-6 md:p-8 rounded-[30px] w-full max-w-3xl shadow-xl max-h-[90vh] overflow-y-auto">
@@ -415,7 +415,7 @@ export default function Students() {
             ) : (
               <div className="space-y-8">
                 
-                {/* 1. Особиста інформація */}
+                {/* Особиста інформація */}
                 <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100">
                   <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Контактна інформація</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
@@ -426,7 +426,7 @@ export default function Students() {
                   </div>
                 </div>
 
-                {/* 2. Інформація про батьків */}
+                {/* Інформація про батьків */}
                 {detailParent && (
                   <div className="bg-blue-50/50 p-5 rounded-2xl border border-blue-100">
                     <h3 className="text-sm font-bold text-blue-400 uppercase tracking-wider mb-4">Батьки / Опікуни</h3>
@@ -439,7 +439,7 @@ export default function Students() {
                   </div>
                 )}
 
-                {/* 3. Підписки (Subscriptions) */}
+                {/* Підписки */}
                 <div>
                   <h3 className="text-lg font-bold text-brand-dark mb-4">Активні підписки</h3>
                   {detailSubscriptions.length === 0 ? (
@@ -457,31 +457,56 @@ export default function Students() {
                   )}
                 </div>
 
-                {/* 4. Історія відвідуваності (Attendance) */}
+                {/* Історія відвідуваності */}
                 <div>
-                  <h3 className="text-lg font-bold text-brand-dark mb-4">Історія відвідуваності</h3>
+                  <div className="flex justify-between items-end mb-4">
+                    <h3 className="text-lg font-bold text-brand-dark">Історія відвідуваності</h3>
+                    
+                    {/* Блок статистики */}
+                    {detailAttendance.length > 0 && (
+                      <div className="flex gap-3 text-sm">
+                        <span className="bg-green-100 text-green-700 px-3 py-1 rounded-lg font-bold shadow-sm">
+                          Відвідав: {detailAttendance.filter(r => r.status === 'PRESENT').length}
+                        </span>
+                        <span className="bg-red-100 text-red-700 px-3 py-1 rounded-lg font-bold shadow-sm">
+                          Пропустив: {detailAttendance.filter(r => r.status === 'ABSENT').length}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
                   {detailAttendance.length === 0 ? (
-                    <p className="text-sm text-gray-500 italic">Історія відсутня.</p>
+                    <p className="text-sm text-gray-500 italic bg-gray-50 p-4 rounded-xl border border-gray-100">
+                      Історія відсутня. Студент ще не був відмічений на жодному уроці.
+                    </p>
                   ) : (
-                    <div className="overflow-x-auto bg-white border border-gray-200 rounded-xl">
+                    <div className="overflow-x-auto bg-white border border-gray-200 rounded-xl custom-scroll">
                       <table className="w-full text-left text-sm">
                         <thead className="bg-gray-50 text-gray-600">
                           <tr>
-                            <th className="px-4 py-3 font-semibold border-b border-gray-200">ID Уроку</th>
+                            <th className="px-4 py-3 font-semibold border-b border-gray-200">Дата</th>
+                            <th className="px-4 py-3 font-semibold border-b border-gray-200">Предмет</th>
                             <th className="px-4 py-3 font-semibold border-b border-gray-200">Статус</th>
                             <th className="px-4 py-3 font-semibold border-b border-gray-200">Нотатки вчителя</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                           {detailAttendance.map(record => (
-                            <tr key={record.id} className="hover:bg-gray-50">
-                              <td className="px-4 py-3 text-gray-700">#{record.lesson}</td>
+                            <tr key={record.id} className="hover:bg-gray-50 transition-colors">
+                              <td className="px-4 py-3 text-gray-800 font-medium whitespace-nowrap">
+                                {record.lesson_date || '—'}
+                              </td>
+                              <td className="px-4 py-3 text-brand-dark font-semibold">
+                                {record.subject_name || `Урок #${record.lesson}`}
+                              </td>
                               <td className="px-4 py-3">
-                                <span className={`px-2 py-1 rounded text-xs font-bold ${record.status === 'PRESENT' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                <span className={`px-2.5 py-1 rounded-md text-xs font-bold ${record.status === 'PRESENT' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                                   {record.status === 'PRESENT' ? 'Присутній' : 'Відсутній'}
                                 </span>
                               </td>
-                              <td className="px-4 py-3 text-gray-500 italic">{record.note || '—'}</td>
+                              <td className="px-4 py-3 text-gray-500 italic max-w-[200px] truncate" title={record.note}>
+                                {record.note || '—'}
+                              </td>
                             </tr>
                           ))}
                         </tbody>

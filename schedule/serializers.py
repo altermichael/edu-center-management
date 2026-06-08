@@ -84,9 +84,12 @@ class LessonSerializer(serializers.ModelSerializer):
         return data
 
 class AttendanceSerializer(serializers.ModelSerializer):
+    lesson_date = serializers.DateField(source='lesson.date', read_only=True)
+    subject_name = serializers.CharField(source='lesson.subject.name', read_only=True)
+
     class Meta:
         model = Attendance
-        fields = ['id', 'lesson', 'student', 'status', 'note']
+        fields = ['id', 'lesson', 'lesson_date', 'subject_name', 'student', 'status', 'note']
 
     def validate(self, data):
       
@@ -114,12 +117,15 @@ class AttendanceSerializer(serializers.ModelSerializer):
         return attendance
 
 class LessonTemplateSerializer(serializers.ModelSerializer):
+    # Додаємо віртуальне поле для прапорця ігнорування конфліктів
+    ignore_conflicts = serializers.BooleanField(write_only=True, required=False, default=False)
+
     class Meta:
         model = LessonTemplate
         fields = [
             'id', 'teacher', 'subject', 'student', 'group', 
             'days_of_week', 'start_time', 'end_time', 
-            'start_date', 'end_date', 'is_active'
+            'start_date', 'end_date', 'is_active', 'ignore_conflicts'
         ]
 
     def validate(self, data):
@@ -130,16 +136,14 @@ class LessonTemplateSerializer(serializers.ModelSerializer):
         start_time = data.get('start_time', getattr(self.instance, 'start_time', None))
         end_time = data.get('end_time', getattr(self.instance, 'end_time', None))
 
-        # або студент, або група
+        # або студент або група
         if student and group:
             raise serializers.ValidationError("Шаблон має бути АБО для індивідуального студента, АБО для групи. Не вказуйте обидва поля.")
         if not student and not group:
             raise serializers.ValidationError("Необхідно вказати студента АБО групу для створення шаблону.")
-
         # перевірка дат
         if start_date and end_date and start_date > end_date:
             raise serializers.ValidationError({"end_date": "Дата закінчення шаблону не може бути раніше дати початку."})
-            
         # перевірка часу
         if start_time and end_time and start_time >= end_time:
             raise serializers.ValidationError({"end_time": "Час закінчення уроку має бути пізніше часу початку."})
@@ -147,48 +151,82 @@ class LessonTemplateSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        template = super().create(validated_data)
+        ignore_conflicts = validated_data.pop('ignore_conflicts', False)
+        
+        # дані для симуляції
+        teacher = validated_data.get('teacher')
+        student = validated_data.get('student')
+        group = validated_data.get('group')
+        start_date = validated_data.get('start_date')
+        end_date = validated_data.get('end_date')
+        start_time = validated_data.get('start_time')
+        end_time = validated_data.get('end_time')
+        days_of_week_str = validated_data.get('days_of_week', '')
         
         try:
-            valid_days = [int(d.strip()) for d in template.days_of_week.split(',')]
+            valid_days = [int(d.strip()) for d in days_of_week_str.split(',')]
         except ValueError:
             valid_days = []
             
-        current_date = template.start_date
-        lessons_to_create = []
+        current_date = start_date
+        valid_lesson_dates = []
+        has_conflicts = False
         
-        while current_date <= template.end_date:
+        # спочатку проходимося по датах для перевірки конфліктів
+        while current_date <= end_date:
             if current_date.weekday() in valid_days:
                 overlapping = Lesson.objects.filter(
                     date=current_date,
-                    start_time__lt=template.end_time,
-                    end_time__gt=template.start_time
+                    start_time__lt=end_time,
+                    end_time__gt=start_time
                 ).exclude(status='CANCELLED')
                 
-                conflict = overlapping.filter(teacher=template.teacher).exists()
+                conflict = overlapping.filter(teacher=teacher).exists()
                 
-                if not conflict and template.student:
-                    conflict = overlapping.filter(Q(student=template.student) | Q(group__students=template.student)).exists()
+                if not conflict and student:
+                    conflict = overlapping.filter(Q(student=student) | Q(group__students=student)).exists()
                     
-                if not conflict and template.group:
-                    group_students = template.group.students.all()
+                if not conflict and group:
+                    group_students = group.students.all()
                     conflict = overlapping.filter(Q(student__in=group_students) | Q(group__students__in=group_students)).exists()
                     
-                if not conflict:
-                    lessons_to_create.append(Lesson(
-                        teacher=template.teacher,
-                        subject=template.subject,
-                        student=template.student,
-                        group=template.group,
-                        template=template,
-                        date=current_date,
-                        start_time=template.start_time,
-                        end_time=template.end_time,
-                        status='SCHEDULED'
-                    ))
+                if conflict:
+                    has_conflicts = True
+                else:
+                    valid_lesson_dates.append(current_date)
+                    
             current_date += timedelta(days=1)
+            
+        # Якщо є конфлікти і користувач не натискав ігнорувати то перериваємо створення
+        if has_conflicts and not ignore_conflicts:
+            raise serializers.ValidationError({
+                "conflicts_detected": "Ваш шаблон містить конфлікти з іншими уроками."
+            })
+            
+        # якщо конфліктів немає або є дозвіл на ігнорування то ми зберігаємо шаблон і уроки
+        template = super().create(validated_data)
+        
+        lessons_to_create = []
+        for d in valid_lesson_dates:
+            lessons_to_create.append(Lesson(
+                teacher=template.teacher,
+                subject=template.subject,
+                student=template.student,
+                group=template.group,
+                template=template,
+                date=d,
+                start_time=template.start_time,
+                end_time=template.end_time,
+                status='SCHEDULED'
+            ))
             
         if lessons_to_create:
             Lesson.objects.bulk_create(lessons_to_create)
             
         return template
+
+class BranchStatisticsSerializer(serializers.Serializer):
+    active_students = serializers.IntegerField()
+    completed_lessons = serializers.IntegerField()
+    cancelled_lessons = serializers.IntegerField()
+    attendance_percent = serializers.FloatField()

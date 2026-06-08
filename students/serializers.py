@@ -30,7 +30,7 @@ class GroupSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'branch', 'branch_name', 'status', 'students']
 
     def create(self, validated_data):
-        # діст студентів з даних
+        # дістаєом студентів з даних
         students_data = validated_data.pop('students', [])
         
         group = super().create(validated_data)

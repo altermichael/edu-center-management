@@ -15,8 +15,13 @@ class StudentViewSet(NoDeleteViewSet):
     serializer_class = StudentSerializer
 
     def get_queryset(self):
-
+        user = self.request.user
         queryset = Student.objects.select_related('branch', 'parent').all()
+
+        if getattr(user, 'role', '') == 'teacher':
+            queryset = queryset.filter(
+                Q(lesson__teacher=user) | Q(study_groups__lesson__teacher=user)
+            ).distinct()
         
         branch_id = self.request.query_params.get('branch')
         status = self.request.query_params.get('status')

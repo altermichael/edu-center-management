@@ -10,6 +10,9 @@ import SubscriptionPlans from "./pages/SubscriptionPlans";
 import Schedule from "./pages/Schedule";
 import Templates from "./pages/Templates";
 import Attendance from "./pages/Attendance";
+import Reports from "./pages/Reports";
+import MyStudents from "./pages/MyStudents";
+import MySchedule from "./pages/MySchedule";
 import Layout from "./components/Layout";
 
 function App() {
@@ -31,6 +34,10 @@ function App() {
           <Route path="/templates" element={<Templates />} />
           <Route path="/attendance" element={<Attendance />} />
           <Route path="/attendance/:lessonId" element={<Attendance />} />
+          <Route path="/reports" element={<Reports />} />
+
+          <Route path="/my-students" element={<MyStudents />} />
+          <Route path="/my-schedule" element={<MySchedule />} />
         </Route>
       </Routes>
     </BrowserRouter>
