@@ -54,7 +54,7 @@ def create_first_admin(request):
             password=admin_password,
             first_name='Головний',
             last_name='Адмін',
-            role='ADMIN' # Якщо у вас роль обов'язкова
+            role='admin' # Якщо у вас роль обов'язкова
         )
         return HttpResponse(f"Суперкористувача {admin_phone} успішно створено! Пароль: {admin_password} <br><br>🚨 ТЕПЕР ОБОВ'ЯЗКОВО ВИДАЛИ ЦЕЙ КОД!")
     

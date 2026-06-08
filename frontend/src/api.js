@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://educenter-api-ih5o.onrender.com/', 
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/',
 });
 
 api.interceptors.request.use(
@@ -32,7 +32,7 @@ api.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem('refreshToken');
         
-        const response = await axios.post(`${baseURL}api/v1/auth/refresh/`, {
+        const response = await axios.post(`${api.defaults.baseURL}api/v1/auth/refresh/`, {
           refresh: refreshToken
         } );
 
