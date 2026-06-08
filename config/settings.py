@@ -148,3 +148,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
+
+render_frontend = os.environ.get('FRONTEND_URL')
+if render_frontend:
+    CORS_ALLOWED_ORIGINS.append(render_frontend)
