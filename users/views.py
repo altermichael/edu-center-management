@@ -37,29 +37,6 @@ class UserViewSet(viewsets.ModelViewSet):
             
         return queryset
 
-from django.http import HttpResponse
-from django.contrib.auth import get_user_model
-
-def create_first_admin(request):
-    User = get_user_model()
-    
-    # Зверни увагу: якщо твоє поле називається phone_number, а не phone - зміни його тут!
-    admin_phone = '+380991112233' 
-    admin_password = 'SuperPassword123!'
-    
-    if not User.objects.filter(phone=admin_phone).exists():
-        # Передай сюди всі обов'язкові поля твоєї моделі (наприклад, role='ADMIN')
-        User.objects.create_superuser(
-            phone=admin_phone, 
-            password=admin_password,
-            first_name='Головний',
-            last_name='Адмін',
-            role='admin' # Якщо у вас роль обов'язкова
-        )
-        return HttpResponse(f"Суперкористувача {admin_phone} успішно створено! Пароль: {admin_password} <br><br>🚨 ТЕПЕР ОБОВ'ЯЗКОВО ВИДАЛИ ЦЕЙ КОД!")
-    
-    return HttpResponse("Суперкористувач вже існує.")
-
 # def login_view(request):
 #     if request.method == 'POST':
 #         phone = request.POST.get('phone')
